@@ -4,6 +4,8 @@ import { AuthModule } from './auth/auth.module';
 import { ClockModule } from './common/clock/clock.module';
 import { validateEnv } from './config/env.validation';
 import { DataModule } from './data/data.module';
+import { HealthController } from './health/health.controller';
+import { PilotModule } from './pilot/pilot.module';
 
 @Module({
   imports: [
@@ -11,6 +13,8 @@ import { DataModule } from './data/data.module';
     ClockModule,
     DataModule,
     AuthModule,
+    PilotModule,
   ],
+  controllers: [HealthController],
 })
 export class AppModule {}
