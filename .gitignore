@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+coverage/
+*.tsbuildinfo
+.nuxt/
+.output/
+.nitro/
+.cache/
+
+# Env files (the .env.example files are committed)
+.env
+.env.*
+!.env.example
+
+# Logs and OS / editor noise
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
