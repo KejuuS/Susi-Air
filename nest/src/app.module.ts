@@ -4,6 +4,7 @@ import { AuthModule } from './auth/auth.module';
 import { ClockModule } from './common/clock/clock.module';
 import { validateEnv } from './config/env.validation';
 import { DataModule } from './data/data.module';
+import { FlightHoursModule } from './flight-hours/flight-hours.module';
 import { HealthController } from './health/health.controller';
 import { PilotModule } from './pilot/pilot.module';
 
@@ -14,6 +15,7 @@ import { PilotModule } from './pilot/pilot.module';
     DataModule,
     AuthModule,
     PilotModule,
+    FlightHoursModule,
   ],
   controllers: [HealthController],
 })
