@@ -4,6 +4,8 @@ export default defineNuxtConfig({
   // Single-page app: data loads in the browser.
   ssr: false,
 
+  modules: ['@pinia/nuxt'],
+
   devtools: { enabled: true },
 
   typescript: {
