@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
 import { ClockModule } from './common/clock/clock.module';
 import { validateEnv } from './config/env.validation';
 import { DataModule } from './data/data.module';
@@ -9,6 +10,7 @@ import { DataModule } from './data/data.module';
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
     ClockModule,
     DataModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
