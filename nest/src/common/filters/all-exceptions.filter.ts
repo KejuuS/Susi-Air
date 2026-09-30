@@ -22,7 +22,6 @@ export interface ErrorResponse {
   timestamp: string;
 }
 
-/** Returns every error in the same JSON shape. */
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
@@ -47,12 +46,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
     };
 
+    // Used by the request logger.
+    response.locals.errorMessage = body.message;
     response.status(statusCode).json(body);
   }
 
   private statusOf(exception: unknown): number {
     if (exception instanceof HttpException) return exception.getStatus();
-    // For example a malformed JSON body.
     const status = (exception as { status?: unknown })?.status;
     if (typeof status === 'number' && status >= 400 && status < 500) {
       return status;
@@ -61,7 +61,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
   }
 
   private messageOf(exception: unknown, statusCode: number): string {
-    // Do not expose internal error details.
     if (statusCode >= 500) return 'Internal server error';
 
     if (exception instanceof HttpException) {
