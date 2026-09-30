@@ -10,6 +10,12 @@ export default defineNuxtConfig({
 
   typescript: {
     strict: true,
+    tsConfig: {
+      vueCompilerOptions: {
+        // Typo in a component name = typecheck error.
+        checkUnknownComponents: true,
+      },
+    },
   },
 
   css: ['~/assets/styles/main.scss'],

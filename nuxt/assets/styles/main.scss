@@ -49,3 +49,50 @@ button {
 .visually-hidden {
   @include visually-hidden;
 }
+
+.skeleton {
+  border-radius: $radius-sm;
+  background: linear-gradient(90deg, $color-border 25%, $color-bg 50%, $color-border 75%);
+  background-size: 200% 100%;
+  animation: skeleton 1.2s ease-in-out infinite;
+}
+
+@keyframes skeleton {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
+.section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $space-3;
+  margin-bottom: $space-3;
+}
+
+.section-title {
+  font-size: $text-lg;
+  font-weight: $font-bold;
+}
+
+.section-subtitle {
+  color: $color-text-muted;
+  font-size: $text-xs;
+  font-weight: $font-medium;
+}
+
+.page-title {
+  margin-bottom: $space-5;
+  font-size: $text-2xl;
+  font-weight: $font-extrabold;
+}
