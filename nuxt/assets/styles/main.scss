@@ -49,3 +49,9 @@ button {
 .visually-hidden {
   @include visually-hidden;
 }
+
+.page-title {
+  margin-bottom: $space-5;
+  font-size: $text-2xl;
+  font-weight: $font-extrabold;
+}

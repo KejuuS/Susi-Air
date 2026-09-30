@@ -4,15 +4,22 @@ import { LoaderCircle } from 'lucide-vue-next'
 withDefaults(
   defineProps<{
     type?: 'button' | 'submit'
+    variant?: 'primary' | 'secondary'
     loading?: boolean
     disabled?: boolean
   }>(),
-  { type: 'button', loading: false, disabled: false },
+  { type: 'button', variant: 'primary', loading: false, disabled: false },
 )
 </script>
 
 <template>
-  <button :type="type" class="button" :disabled="disabled || loading" :aria-busy="loading">
+  <button
+    :type="type"
+    class="button"
+    :class="`button--${variant}`"
+    :disabled="disabled || loading"
+    :aria-busy="loading"
+  >
     <LoaderCircle v-if="loading" class="button__spinner" :size="20" aria-hidden="true" />
     <slot />
   </button>
@@ -43,6 +50,13 @@ withDefaults(
     cursor: not-allowed;
     opacity: 0.7;
   }
+}
+
+.button--secondary {
+  border: 1.5px solid $color-navy;
+  background: $color-surface;
+  color: $color-navy;
+  font-size: $text-md;
 }
 
 .button__spinner {
