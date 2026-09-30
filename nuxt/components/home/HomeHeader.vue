@@ -97,7 +97,6 @@ function retry() {
   font-size: $text-sm;
 
   strong {
-    @include tabular-nums;
     margin-left: $space-1;
     color: $color-text;
     font-weight: $font-extrabold;

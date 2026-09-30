@@ -7,19 +7,31 @@ export const useFlightHoursStore = defineStore('flightHours', () => {
   const status = ref<LoadStatus>('idle')
   const errorMessage = ref<string | null>(null)
 
+  let latestRequest = 0
+
   async function load(): Promise<void> {
+    const request = ++latestRequest
     status.value = 'loading'
     errorMessage.value = null
     try {
-      summary.value = await useApi().get<FlightHoursSummary>('/flight-hours/summary', {
+      const result = await useApi().get<FlightHoursSummary>('/flight-hours/summary', {
         range: range.value,
       })
+      // Ignore replies for an older range.
+      if (request !== latestRequest) return
+      summary.value = result
       status.value = 'success'
     } catch (error) {
+      if (request !== latestRequest) return
       errorMessage.value = errorMessageOf(error)
       status.value = 'error'
     }
   }
 
-  return { range, summary, status, errorMessage, load }
+  function setRange(next: ChartRange): Promise<void> {
+    range.value = next
+    return load()
+  }
+
+  return { range, summary, status, errorMessage, load, setRange }
 })

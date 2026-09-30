@@ -62,7 +62,6 @@ const barWidth = computed(() => `${Math.min(props.card.percent, 100)}%`)
 }
 
 .limit-card__value {
-  @include tabular-nums;
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -84,7 +83,7 @@ const barWidth = computed(() => `${Math.min(props.card.percent, 100)}%`)
   height: 8px;
   overflow: hidden;
   border-radius: $radius-pill;
-  background: $color-border;
+  background: color-mix(in srgb, var(--status-color) 20%, $color-surface);
 }
 
 .limit-card__bar {
@@ -94,7 +93,6 @@ const barWidth = computed(() => `${Math.min(props.card.percent, 100)}%`)
 }
 
 .limit-card__status {
-  @include tabular-nums;
   display: flex;
   align-items: center;
   gap: $space-2;

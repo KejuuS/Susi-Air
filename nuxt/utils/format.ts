@@ -12,6 +12,19 @@ const dateFormat = new Intl.DateTimeFormat('en-GB', {
   timeZone: 'UTC',
 })
 
+const shortDateFormat = new Intl.DateTimeFormat('en-GB', {
+  day: 'numeric',
+  month: 'short',
+  timeZone: 'UTC',
+})
+
+const weekdayDateFormat = new Intl.DateTimeFormat('en-GB', {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+  timeZone: 'UTC',
+})
+
 /** 1444.5 -> "1,444.5" */
 export function formatHours(value: number): string {
   return hoursFormat.format(value)
@@ -25,6 +38,16 @@ export function formatNumber(value: number): string {
 /** "2026-05-15" -> "15 May 2026" */
 export function formatDate(isoDate: string): string {
   return dateFormat.format(new Date(`${isoDate}T00:00:00Z`))
+}
+
+/** "2026-05-08" -> "8 May" */
+export function formatShortDate(isoDate: string): string {
+  return shortDateFormat.format(new Date(`${isoDate}T00:00:00Z`))
+}
+
+/** "2026-05-15" -> "Fri 15 May" */
+export function formatWeekdayDate(isoDate: string): string {
+  return weekdayDateFormat.format(new Date(`${isoDate}T00:00:00Z`))
 }
 
 export function greetingFor(hour: number): string {

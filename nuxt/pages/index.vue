@@ -14,6 +14,7 @@ onMounted(() => {
   <div class="home">
     <HomeHeader />
     <HomeLimitCards />
+    <HomeHoursTrend />
   </div>
 </template>
 
