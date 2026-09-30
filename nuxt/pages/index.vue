@@ -1,10 +1,23 @@
+<script setup lang="ts">
+useHead({ title: 'Home · Susi Air Pilot' })
+
+const pilot = usePilotStore()
+
+onMounted(() => {
+  pilot.load()
+})
+</script>
+
 <template>
-  <h1 class="title">Susi Air Pilot</h1>
+  <div class="home">
+    <HomeHeader />
+  </div>
 </template>
 
 <style lang="scss" scoped>
-.title {
-  font-size: $text-xl;
-  font-weight: $font-bold;
+.home {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
 }
 </style>
