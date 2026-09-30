@@ -72,6 +72,25 @@ button {
   }
 }
 
+.section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $space-3;
+  margin-bottom: $space-3;
+}
+
+.section-title {
+  font-size: $text-lg;
+  font-weight: $font-bold;
+}
+
+.section-subtitle {
+  color: $color-text-muted;
+  font-size: $text-xs;
+  font-weight: $font-medium;
+}
+
 .page-title {
   margin-bottom: $space-5;
   font-size: $text-2xl;
