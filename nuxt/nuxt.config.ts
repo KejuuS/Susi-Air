@@ -1,7 +1,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
 
-  // Single-page app: data loads in the browser.
+  // Single-page app.
   ssr: false,
 
   modules: ['@pinia/nuxt'],
@@ -18,7 +18,6 @@ export default defineNuxtConfig({
     css: {
       preprocessorOptions: {
         scss: {
-          // Makes tokens and mixins available in every SCSS block.
           additionalData: '@use "~/assets/styles/tokens" as *; @use "~/assets/styles/mixins" as *;',
         },
       },
@@ -27,7 +26,6 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      // Overridden by NUXT_PUBLIC_API_BASE.
       apiBase: 'http://localhost:3001',
     },
   },
@@ -41,6 +39,8 @@ export default defineNuxtConfig({
         { name: 'theme-color', content: '#0E2138' },
       ],
       link: [
+        { rel: 'icon', type: 'image/png', href: '/favicon.png' },
+        { rel: 'apple-touch-icon', href: '/susiair-logo2.png' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         {

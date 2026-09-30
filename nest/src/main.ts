@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { configureApp } from './app.setup';
+import { requestLogger } from './common/middleware/request-logger';
 import {
   DEFAULT_JWT_SECRET,
   type EnvironmentVariables,
@@ -11,6 +12,7 @@ import {
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.use(requestLogger);
   configureApp(app);
 
   const config = app.get(ConfigService<EnvironmentVariables, true>);

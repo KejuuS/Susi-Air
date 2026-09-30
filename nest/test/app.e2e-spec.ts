@@ -11,7 +11,7 @@ describe('Susi Air API (e2e)', () => {
   let server: App;
   let token: string;
 
-  // Same credentials as the app, including any .env overrides.
+  // Follows any .env overrides.
   const username = () => process.env.AUTH_USERNAME ?? 'johndoe';
   const password = () => process.env.AUTH_PASSWORD ?? 'susiairtest';
 
@@ -34,7 +34,9 @@ describe('Susi Air API (e2e)', () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
-    app = moduleRef.createNestApplication<NestExpressApplication>();
+    app = moduleRef.createNestApplication<NestExpressApplication>({
+      logger: false,
+    });
     configureApp(app);
     await app.init();
     server = app.getHttpServer();

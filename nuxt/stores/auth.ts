@@ -16,14 +16,15 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function login(username: string, password: string): Promise<void> {
     const response = await useApi().post<LoginResponse>('/auth/login', { username, password })
-    // The cookie expires together with the token.
     tokenCookie(response.expiresIn).value = response.accessToken
     token.value = response.accessToken
+    devLog('auth', `Signed in as "${username}", token valid for ${response.expiresIn}s`)
   }
 
   function logout(): void {
     tokenCookie().value = null
     token.value = null
+    devLog('auth', 'Signed out, token removed')
   }
 
   return { token, isLoggedIn, login, logout }

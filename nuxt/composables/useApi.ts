@@ -26,16 +26,24 @@ export function useApi() {
   const auth = useAuthStore()
 
   async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+    const label = `${options.method ?? 'GET'} ${apiBase}${path}${queryString(options.query)}`
+    const startedAt = Date.now()
+    devLog('api', `→ ${label}`)
+
     try {
-      return await $fetch<T>(path, {
+      const response = await $fetch.raw<T>(path, {
         ...options,
         baseURL: apiBase,
         headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined,
       })
+      devLog('api', `← ${response.status} ${label} (${Date.now() - startedAt}ms)`)
+      return response._data as T
     } catch (error) {
       const apiError = toApiError(error)
-      // On login a 401 only means wrong credentials. Anywhere else the session has ended.
+      devLog('api', `← ${apiError.status ?? 'no response'} ${label} (${Date.now() - startedAt}ms) - ${apiError.message}`)
+      // 401 = wrong password.
       if (apiError.kind === 'unauthorized' && path !== '/auth/login') {
+        devLog('auth', 'Session ended, signing out')
         auth.logout()
         await navigateTo('/login')
       }
@@ -48,6 +56,15 @@ export function useApi() {
     post: <T>(path: string, body: Record<string, unknown>) =>
       request<T>(path, { method: 'POST', body }),
   }
+}
+
+function queryString(query?: Query): string {
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(query ?? {})) {
+    if (value !== undefined) params.set(key, String(value))
+  }
+  const text = params.toString()
+  return text ? `?${text}` : ''
 }
 
 function toApiError(error: unknown): ApiError {
