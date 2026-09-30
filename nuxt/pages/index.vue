@@ -3,10 +3,12 @@ useHead({ title: 'Home · Susi Air Pilot' })
 
 const pilot = usePilotStore()
 const flightHours = useFlightHoursStore()
+const documents = useDocumentsStore()
 
 onMounted(() => {
   pilot.load()
   flightHours.load()
+  documents.load()
 })
 </script>
 
@@ -15,6 +17,7 @@ onMounted(() => {
     <HomeHeader />
     <HomeLimitCards />
     <HomeHoursTrend />
+    <HomeDocumentList />
   </div>
 </template>
 
