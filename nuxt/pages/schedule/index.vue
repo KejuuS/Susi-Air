@@ -74,6 +74,7 @@ function retry() {
         @next="goToMonth(1)"
       />
       <p v-if="isEmptyMonth" class="schedule__empty">No duties scheduled this month.</p>
+      <ScheduleLegend v-if="schedules.legend.length" :items="schedules.legend" class="schedule__legend" />
     </BaseAsyncSection>
   </div>
 </template>
@@ -89,5 +90,9 @@ function retry() {
   color: $color-text-muted;
   font-size: $text-sm;
   text-align: center;
+}
+
+.schedule__legend {
+  margin-top: $space-4;
 }
 </style>

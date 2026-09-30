@@ -42,13 +42,20 @@ function entryFor(date: string) {
 
     <ol class="calendar__grid" :class="{ 'calendar__grid--busy': busy }" :aria-busy="busy">
       <li v-for="(date, index) in cells" :key="date ?? `blank-${index}`" :aria-hidden="date ? undefined : 'true'">
-        <ScheduleDay
-          v-if="date"
-          :date="date"
-          :entry="entryFor(date)"
-          :duty-label="dutyLabels.get(entryFor(date)?.dutyType ?? '')"
-          :is-today="date === today"
-        />
+        <NuxtLink
+          v-if="date && entryFor(date)"
+          :to="`/schedule/${date}`"
+          class="calendar__link"
+          @click="devLog('ui', `Day ${date} opened`)"
+        >
+          <ScheduleDay
+            :date="date"
+            :entry="entryFor(date)"
+            :duty-label="dutyLabels.get(entryFor(date)!.dutyType)"
+            :is-today="date === today"
+          />
+        </NuxtLink>
+        <ScheduleDay v-else-if="date" :date="date" :is-today="date === today" />
       </li>
     </ol>
   </div>
@@ -106,6 +113,17 @@ function entryFor(date: string) {
 
   &--busy {
     opacity: 0.5;
+  }
+}
+
+.calendar__link {
+  display: block;
+  border-radius: $radius-sm;
+  text-decoration: none;
+  transition: transform 0.1s ease;
+
+  &:active {
+    transform: scale(0.96);
   }
 }
 </style>
