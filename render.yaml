@@ -1,0 +1,26 @@
+# Render Blueprint for the API. In Render: New > Blueprint, then pick this repo.
+services:
+  - type: web
+    name: susi-air-api
+    runtime: node
+    rootDir: nest
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: APP_TODAY
+        value: "2026-05-15"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN_SECONDS
+        value: "3600"
+      - key: AUTH_USERNAME
+        value: johndoe
+      - key: AUTH_PASSWORD
+        value: susiairtest
+      # The Vercel URL of the frontend, filled in after the first frontend deploy.
+      - key: CORS_ORIGIN
+        sync: false
