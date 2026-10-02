@@ -10,6 +10,8 @@ Repo ini isinya dua aplikasi:
 
 Untuk login, pakai **`johndoe`** dan password **`susiairtest`**.
 
+**Versi online-nya bisa langsung dicoba di <https://susi-air-azkal.vercel.app>.** API-nya ada di <https://susi-air-api.vercel.app> (cek <https://susi-air-api.vercel.app/health>).
+
 ## Daftar isi
 
 1. [Menjalankan di komputer sendiri](#menjalankan-di-komputer-sendiri)
@@ -346,7 +348,7 @@ Urutannya: deploy API dulu, lalu web, terakhir sambungkan keduanya. Sebelum mula
 
    Biar cepat, isi `.env` bisa langsung di-paste sekaligus ke kolom Key, nanti Vercel memecahnya sendiri per baris. `PORT` tidak perlu diisi.
 5. Klik **Deploy** dan tunggu sampai selesai, biasanya 1 sampai 2 menit.
-6. Salin alamat API-nya dari halaman project, misalnya `https://susi-air-api.vercel.app`.
+6. Salin alamat API-nya dari halaman project, misalnya `https://susi-air-api.vercel.app`. Kalau nama project-nya sudah dipakai orang lain, Vercel akan memberi alamat yang sedikit berbeda, jadi selalu salin alamat yang benar-benar muncul di project kamu.
 7. Cek dengan membuka `https://<alamat-api>/health`. Kalau balasannya `{"status":"ok","today":"2026-05-15"}`, API sudah jalan.
 
 Log setiap request bisa dilihat di tab **Logs** pada project API. Request pertama setelah API lama tidak dipakai bisa sedikit lebih lambat (sekitar satu sampai dua detik) karena aplikasinya perlu dinyalakan dulu, tapi tidak sampai "tidur" lama seperti beberapa layanan gratis lain.
@@ -354,20 +356,20 @@ Log setiap request bisa dilihat di tab **Logs** pada project API. Request pertam
 ### 2. Deploy web ke Vercel
 
 1. Di Vercel, klik lagi **Add New**, pilih **Project**, lalu **Import** repo yang sama.
-2. Isi **Project Name**, misalnya `susi-air`.
+2. Isi **Project Name**, misalnya `susi-air-<nama-kamu>`. Nama yang terlalu umum seperti `susi-air` kemungkinan besar sudah dipakai orang lain.
 3. Di bagian **Root Directory**, klik *Edit* dan pilih folder `nuxt`. Langkah ini jangan sampai terlewat. Framework-nya akan otomatis terdeteksi sebagai Nuxt, jadi tidak perlu file `vercel.json`.
 4. Buka **Environment Variables** dan tambahkan `NUXT_PUBLIC_API_BASE` dengan isi alamat API dari langkah 1, tanpa garis miring di akhir. Contohnya `https://susi-air-api.vercel.app`.
 5. Klik **Deploy**. Versi Node-nya dipilih otomatis dari `engines` di `nuxt/package.json`.
-6. Salin alamat web-nya, misalnya `https://susi-air.vercel.app`.
+6. Salin alamat web-nya dari **Settings**, lalu **Domains**, misalnya `https://susi-air-azkal.vercel.app`. Pakai alamat ini, bukan alamat deployment yang panjang (seperti `susi-air-8f3k2x-namatim.vercel.app`), karena yang panjang itu berubah setiap kali deploy.
 
 ### 3. Sambungkan web dan API
 
 1. Buka project **API** di Vercel, lalu **Settings**, lalu **Environment Variables**.
-2. Ubah `CORS_ORIGIN` menjadi alamat web dari langkah 2, tanpa garis miring di akhir. Contohnya `https://susi-air.vercel.app`. Simpan.
+2. Ubah `CORS_ORIGIN` menjadi alamat web dari langkah 2, tanpa garis miring di akhir. Contohnya `https://susi-air-azkal.vercel.app`. Simpan.
 3. Perubahan environment variable di Vercel baru berlaku setelah deploy ulang. Buka tab **Deployments**, klik titik tiga di deployment paling atas, lalu pilih **Redeploy**.
 4. Buka alamat web dan login dengan `johndoe` / `susiairtest`.
 
-Kalau setelah itu muncul pesan "Could not reach the server", hampir pasti masalahnya di `CORS_ORIGIN`. Pastikan isinya persis sama dengan alamat web: pakai `https` dan tanpa `/` di akhir, lalu pastikan API sudah di-redeploy. Kalau alamat preview Vercel dari branch lain juga mau bisa dipakai, tambahkan saja dengan pemisah koma, misalnya `https://susi-air.vercel.app,https://susi-air-git-xxx.vercel.app`.
+Kalau setelah itu muncul pesan "Could not reach the server", hampir pasti masalahnya di `CORS_ORIGIN`. Pastikan isinya persis sama dengan alamat yang terlihat di address bar browser saat membuka web: pakai `https`, tanpa `/` di akhir, tanpa spasi, lalu pastikan API sudah di-redeploy. Alamat lain bisa ditambahkan dengan pemisah koma, misalnya `https://susi-air-azkal.vercel.app,http://localhost:3000` supaya bisa sekalian mencoba dari laptop.
 
 Setelah semuanya tersambung, setiap kali ada perubahan yang masuk ke `main`, Vercel akan otomatis men-deploy ulang project yang folder-nya berubah.
 
