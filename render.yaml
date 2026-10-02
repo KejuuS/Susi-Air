@@ -1,8 +1,10 @@
-# Render Blueprint for the API. In Render: New > Blueprint, then pick this repo.
+# Render Blueprint for the API. Blueprints need a card on the Render account;
+# without one, create a free Web Service by hand with the same settings (see README).
 services:
   - type: web
     name: susi-air-api
     runtime: node
+    region: singapore
     rootDir: nest
     plan: free
     buildCommand: npm ci && npm run build

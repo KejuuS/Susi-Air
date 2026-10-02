@@ -1,0 +1,42 @@
+# Tests the API, then pushes the nest/ folder to a Hugging Face Space.
+# Needs the repo secret HF_TOKEN and the repo variable HF_SPACE (e.g. username/susi-air-api).
+name: Deploy API to Hugging Face
+
+on:
+  push:
+    branches: [main]
+    paths: ['nest/**', '.github/workflows/deploy-api.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-api
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: nest/package-lock.json
+
+      - name: Test
+        working-directory: nest
+        run: |
+          npm ci
+          npm test
+          npm run test:e2e
+
+      - name: Push nest/ to the Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE: ${{ vars.HF_SPACE }}
+        run: |
+          git push --force "https://${HF_SPACE%%/*}:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}" \
+            "$(git subtree split --prefix nest HEAD):refs/heads/main"
