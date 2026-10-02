@@ -8,6 +8,7 @@ coverage/
 .nuxt/
 .output/
 .nitro/
+.vercel/
 .cache/
 
 # Env files (the .env.example files are committed)
