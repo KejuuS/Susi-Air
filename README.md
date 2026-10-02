@@ -68,7 +68,7 @@ Beberapa perintah yang mungkin berguna:
 
 | Variabel | Nilai bawaan | Kegunaan |
 |---|---|---|
-| `PORT` | `3001` | Port API. Di Hugging Face diatur ke 7860 oleh Dockerfile; di Render dan Railway diisi sendiri oleh platform-nya. |
+| `PORT` | `3001` | Port API saat dijalankan sebagai server biasa. Di Vercel tidak dipakai, dan di Render atau Railway diisi sendiri oleh platform-nya. |
 | `APP_TODAY` | `2026-05-15` | Tanggal yang dianggap "hari ini" oleh seluruh aplikasi. |
 | `JWT_SECRET` | `dev-only-change-me` | Kunci untuk membuat token login. Selama masih nilai bawaan, API akan menampilkan peringatan saat start. Di production harus diganti. |
 | `JWT_EXPIRES_IN_SECONDS` | `3600` | Berapa lama token berlaku, dalam detik (3600 berarti 1 jam). |
@@ -270,7 +270,7 @@ Waktu membaca file JSON-nya, saya menemukan beberapa hal yang tidak cocok dengan
 
 Prinsip utamanya, web tidak menghitung apa pun dan tidak menyimpan data contoh. Status, sisa hari, total jam, legenda, sampai tanggal "hari ini" semuanya datang dari API. Yang dikerjakan web cuma urusan tampilan, misalnya memilih teks biru tua atau putih supaya angka di setiap hari kalender tetap terbaca di atas warna latarnya.
 
-Web-nya saya jalankan sebagai single-page app (`ssr: false`). Alasannya ada tiga. Sapaan *Good morning/afternoon/evening* memakai jam di HP pilot, yang tidak diketahui server. Data dimuat langsung di browser, jadi tiap bagian halaman punya tampilan loading sendiri dan tidak saling menunggu. Dan kalau API di server gratis sedang "tidur", halaman tidak jadi kosong lama.
+Web-nya saya jalankan sebagai single-page app (`ssr: false`). Alasannya ada tiga. Sapaan *Good morning/afternoon/evening* memakai jam di HP pilot, yang tidak diketahui server. Data dimuat langsung di browser, jadi tiap bagian halaman punya tampilan loading sendiri dan tidak saling menunggu. Dan kalau request pertama ke API agak lambat karena server-nya baru dinyalakan, halaman tidak jadi kosong lama.
 
 Semua panggilan ke API lewat satu pintu, `useApi`. Di sini alamat API diatur, token login ditempel otomatis, dan error dikelompokkan jadi empat jenis: belum login, input salah, server bermasalah, atau tidak ada koneksi. Kalau token ditolak (401) di halaman selain login, pengguna otomatis dikeluarkan dan diarahkan ke `/login`.
 
@@ -308,105 +308,74 @@ Untuk API (jalankan dari folder `nest/`):
 - error input lengkap dengan `details`, isi request yang rusak, dan alamat yang tidak ada (404);
 - alur normal di setiap endpoint.
 
-Kedua tes ini juga dijalankan otomatis oleh GitHub Actions setiap kali API akan di-deploy. Kalau ada yang gagal, deploy-nya dibatalkan.
-
 Untuk web (dari folder `nuxt/`), `npm run typecheck` mengecek semua file. Saya juga mengaturnya supaya gagal kalau ada nama komponen yang salah ketik, karena biasanya kesalahan seperti itu cuma membuat sebagian halaman diam-diam tidak muncul. Semua layar sudah saya cek di browser sungguhan, di lebar HP (390px) dan desktop, tapi memang belum ada tes browser otomatis di repo ini.
 
 ## Cara deploy
 
-Urutannya: deploy API dulu, lalu web, terakhir sambungkan keduanya. API saya taruh di **Hugging Face Spaces** dan web di **Vercel**. Dua-duanya gratis dan tidak minta kartu kredit sama sekali.
+API dan web sama-sama saya taruh di **Vercel**, sebagai dua project terpisah dari repo yang sama. Paket gratisnya (Hobby) tidak minta kartu kredit, jadi semuanya bisa dijalankan tanpa biaya.
 
-Kenapa bukan Render atau Railway seperti di brief? Keduanya sekarang meminta verifikasi kartu kredit (Render menarik tes $1 lalu mengembalikannya), dan kartu debit saya ditolak. Jadi saya pakai Hugging Face, yang bisa menjalankan aplikasi apa pun lewat Docker. Konfigurasi untuk Render dan Railway tetap saya siapkan di repo, penjelasannya ada di bagian [paling bawah](#kalau-ingin-pakai-render-atau-railway).
+Kenapa bukan Render atau Railway seperti di brief? Keduanya sekarang meminta verifikasi kartu kredit (Render menarik tes $1 lalu mengembalikannya), dan kartu debit saya ditolak. Hugging Face Spaces juga sempat saya coba, tapi opsi Docker di sana sekarang berbayar. Konfigurasi untuk Render dan Railway tetap saya simpan di repo, penjelasannya ada di bagian [paling bawah](#kalau-ingin-pakai-render-atau-railway).
 
-Sebelum mulai, pastikan semua perubahan sudah di-push dan masuk ke branch `main`.
+Di Vercel, API berjalan sebagai *serverless function*. Saat build, `npm run build` mengubah kode di `src/` menjadi `dist/`, lalu `nest/api/index.js` menyalakan aplikasi NestJS sekali dan memakainya untuk semua request berikutnya. Pengaturannya ada di `nest/vercel.json`: semua alamat diarahkan ke function itu, dan function-nya dijalankan di region Singapore supaya dekat ke Indonesia. API ini cocok untuk serverless karena datanya cuma dibaca dari file JSON dan login memakai JWT, jadi tidak ada data yang perlu disimpan di server.
 
-### 1. Deploy API ke Hugging Face Spaces
+Urutannya: deploy API dulu, lalu web, terakhir sambungkan keduanya. Sebelum mulai, pastikan semua perubahan sudah di-push dan masuk ke branch `main`.
 
-Gambaran singkatnya: Hugging Face menjalankan folder `nest/` di dalam container Docker (resepnya ada di `nest/Dockerfile`). Folder itu dikirim ke Space oleh GitHub Actions (`.github/workflows/deploy-api.yml`) setiap kali ada perubahan di `main`. Sebelum dikirim, semua tes API dijalankan dulu, dan kalau ada yang gagal, deploy dibatalkan.
-
-**a. Buat Space-nya**
-
-1. Daftar atau login di <https://huggingface.co>.
-2. Buka <https://huggingface.co/new-space> dan isi:
-
-   | Isian | Nilai |
-   |---|---|
-   | Space name | `susi-air-api` |
-   | Space SDK | **Docker**, template **Blank** |
-   | Space hardware | **CPU basic** (yang FREE) |
-   | Visibility | **Public** (wajib, supaya browser bisa memanggil API-nya) |
-
-3. Klik **Create Space**. Space-nya akan kosong dulu, tidak apa-apa.
-
-**b. Isi pengaturannya**
-
-Di halaman Space, buka **Settings**, lalu cari bagian **Variables and secrets**.
-
-Tambahkan lewat **New variable**:
-
-| Name | Value |
-|---|---|
-| `APP_TODAY` | `2026-05-15` |
-| `JWT_EXPIRES_IN_SECONDS` | `3600` |
-| `AUTH_USERNAME` | `johndoe` |
-| `CORS_ORIGIN` | `http://localhost:3000` untuk sementara, karena alamat web dari Vercel belum ada |
-
-Lalu tambahkan lewat **New secret** (nilainya disembunyikan):
-
-| Name | Value |
-|---|---|
-| `JWT_SECRET` | teks acak yang panjang, misalnya hasil `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
-| `AUTH_PASSWORD` | `susiairtest` |
-
-`PORT` tidak perlu diisi, karena Dockerfile sudah mengaturnya ke 7860, port yang dipakai Hugging Face.
-
-**c. Hubungkan GitHub ke Space**
-
-1. Di Hugging Face, buka <https://huggingface.co/settings/tokens>, klik **Create new token**, pilih tipe **Write**, beri nama bebas, lalu salin token-nya (diawali `hf_`).
-2. Di GitHub, buka repo ini, lalu **Settings**, **Secrets and variables**, **Actions**.
-3. Di tab **Secrets**, klik **New repository secret**. Isi name `HF_TOKEN` dan tempel token tadi.
-4. Di tab **Variables**, klik **New repository variable**. Isi name `HF_SPACE` dengan `<username-huggingface>/susi-air-api`, misalnya `kejuus/susi-air-api`.
-
-**d. Jalankan deploy-nya**
-
-1. Di GitHub, buka tab **Actions**, pilih **Deploy API to Hugging Face**, lalu klik **Run workflow** (branch `main`). Untuk selanjutnya tidak perlu lagi, karena workflow ini jalan sendiri setiap ada perubahan di folder `nest/` yang masuk ke `main`.
-2. Tunggu sampai centangnya hijau (sekitar 2 menit, termasuk tes).
-3. Kembali ke halaman Space di Hugging Face. Space akan mulai build sendiri; progresnya bisa dilihat di tab **Logs**. Tunggu sampai statusnya **Running**. Build pertama biasanya 3 sampai 5 menit.
-4. Alamat API-nya berbentuk `https://<username>-susi-air-api.hf.space`, semua huruf kecil. Alamat pastinya juga bisa dilihat dari menu titik tiga di halaman Space, pilih **Embed this Space**, lalu **Direct URL**.
-5. Cek dengan membuka `https://<alamat-api>/health`. Kalau balasannya `{"status":"ok","today":"2026-05-15"}`, API sudah jalan.
-
-Kalau tidak ingin pakai GitHub Actions, folder `nest/` juga bisa dikirim manual dari terminal di folder repo ini. Saat diminta login, isi username Hugging Face dan pakai token tadi sebagai password:
-
-```bash
-git remote add space https://huggingface.co/spaces/<username>/susi-air-api
-git push --force space "$(git subtree split --prefix nest HEAD):main"
-```
-
-Satu catatan soal paket gratis: Space akan "tidur" kalau tidak dibuka sekitar 48 jam. Begitu ada yang mengakses, Space bangun lagi, tapi butuh sekitar satu menit. Jadi sebelum demo, buka dulu alamat `/health`.
-
-### 2. Deploy web ke Vercel
+### 1. Deploy API ke Vercel
 
 1. Buka <https://vercel.com> dan login pakai GitHub.
 2. Klik **Add New**, pilih **Project**, lalu **Import** repo ini.
+3. Isi pengaturannya:
+
+   | Isian | Nilai |
+   |---|---|
+   | Project Name | `susi-air-api` (nanti jadi bagian alamat API) |
+   | Root Directory | klik *Edit*, pilih folder `nest` |
+   | Framework Preset | **Other** (biasanya sudah otomatis karena `vercel.json`) |
+   | Build and Output Settings | biarkan saja, sudah diatur oleh `vercel.json` |
+
+4. Buka **Environment Variables** dan tambahkan:
+
+   | Key | Value |
+   |---|---|
+   | `APP_TODAY` | `2026-05-15` |
+   | `JWT_SECRET` | teks acak yang panjang, misalnya hasil `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+   | `JWT_EXPIRES_IN_SECONDS` | `3600` |
+   | `AUTH_USERNAME` | `johndoe` |
+   | `AUTH_PASSWORD` | `susiairtest` |
+   | `CORS_ORIGIN` | `http://localhost:3000` untuk sementara, karena alamat web-nya belum ada |
+
+   Biar cepat, isi `.env` bisa langsung di-paste sekaligus ke kolom Key, nanti Vercel memecahnya sendiri per baris. `PORT` tidak perlu diisi.
+5. Klik **Deploy** dan tunggu sampai selesai, biasanya 1 sampai 2 menit.
+6. Salin alamat API-nya dari halaman project, misalnya `https://susi-air-api.vercel.app`.
+7. Cek dengan membuka `https://<alamat-api>/health`. Kalau balasannya `{"status":"ok","today":"2026-05-15"}`, API sudah jalan.
+
+Log setiap request bisa dilihat di tab **Logs** pada project API. Request pertama setelah API lama tidak dipakai bisa sedikit lebih lambat (sekitar satu sampai dua detik) karena aplikasinya perlu dinyalakan dulu, tapi tidak sampai "tidur" lama seperti beberapa layanan gratis lain.
+
+### 2. Deploy web ke Vercel
+
+1. Di Vercel, klik lagi **Add New**, pilih **Project**, lalu **Import** repo yang sama.
+2. Isi **Project Name**, misalnya `susi-air`.
 3. Di bagian **Root Directory**, klik *Edit* dan pilih folder `nuxt`. Langkah ini jangan sampai terlewat. Framework-nya akan otomatis terdeteksi sebagai Nuxt, jadi tidak perlu file `vercel.json`.
-4. Buka **Environment Variables** dan tambahkan `NUXT_PUBLIC_API_BASE` dengan isi alamat API dari langkah 1, tanpa garis miring di akhir. Contohnya `https://kejuus-susi-air-api.hf.space`.
+4. Buka **Environment Variables** dan tambahkan `NUXT_PUBLIC_API_BASE` dengan isi alamat API dari langkah 1, tanpa garis miring di akhir. Contohnya `https://susi-air-api.vercel.app`.
 5. Klik **Deploy**. Versi Node-nya dipilih otomatis dari `engines` di `nuxt/package.json`.
 6. Salin alamat web-nya, misalnya `https://susi-air.vercel.app`.
 
 ### 3. Sambungkan web dan API
 
-1. Kembali ke Space di Hugging Face, buka **Settings**, lalu **Variables and secrets**.
-2. Ubah `CORS_ORIGIN` menjadi alamat web dari Vercel, tanpa garis miring di akhir. Contohnya `https://susi-air.vercel.app`.
-3. Simpan. Space akan restart sendiri dengan pengaturan baru. Kalau tidak, klik **Restart this Space** di halaman Settings.
-4. Buka alamat web dari Vercel dan login dengan `johndoe` / `susiairtest`.
+1. Buka project **API** di Vercel, lalu **Settings**, lalu **Environment Variables**.
+2. Ubah `CORS_ORIGIN` menjadi alamat web dari langkah 2, tanpa garis miring di akhir. Contohnya `https://susi-air.vercel.app`. Simpan.
+3. Perubahan environment variable di Vercel baru berlaku setelah deploy ulang. Buka tab **Deployments**, klik titik tiga di deployment paling atas, lalu pilih **Redeploy**.
+4. Buka alamat web dan login dengan `johndoe` / `susiairtest`.
 
-Kalau setelah itu muncul pesan "Could not reach the server", hampir pasti masalahnya di `CORS_ORIGIN`. Pastikan isinya persis sama dengan alamat web: pakai `https` dan tanpa `/` di akhir. Kalau alamat preview Vercel dari branch lain juga mau bisa dipakai, tambahkan saja dengan pemisah koma, misalnya `https://susi-air.vercel.app,https://susi-air-git-xxx.vercel.app`.
+Kalau setelah itu muncul pesan "Could not reach the server", hampir pasti masalahnya di `CORS_ORIGIN`. Pastikan isinya persis sama dengan alamat web: pakai `https` dan tanpa `/` di akhir, lalu pastikan API sudah di-redeploy. Kalau alamat preview Vercel dari branch lain juga mau bisa dipakai, tambahkan saja dengan pemisah koma, misalnya `https://susi-air.vercel.app,https://susi-air-git-xxx.vercel.app`.
+
+Setelah semuanya tersambung, setiap kali ada perubahan yang masuk ke `main`, Vercel akan otomatis men-deploy ulang project yang folder-nya berubah.
 
 ### Kalau ingin pakai Render atau Railway
 
-Dua-duanya bisa, asalkan akunnya sudah terverifikasi dengan kartu kredit.
+Dua-duanya bisa, asalkan akunnya sudah terverifikasi dengan kartu kredit. API-nya tetap jalan sebagai server biasa lewat `npm run start:prod`.
 
-- **Render:** pengaturannya sudah ada di `render.yaml`, jadi cukup **New**, lalu **Blueprint**, lalu pilih repo ini. Kalau mau membuat **Web Service** manual, isi Root Directory `nest`, Build Command `npm ci && npm run build`, Start Command `npm run start:prod`, Health Check Path `/health`, ditambah variabel `NODE_VERSION=22` dan variabel yang sama seperti di Hugging Face di atas.
+- **Render:** pengaturannya sudah ada di `render.yaml`, jadi cukup **New**, lalu **Blueprint**, lalu pilih repo ini. Kalau mau membuat **Web Service** manual, isi Root Directory `nest`, Build Command `npm ci && npm run build`, Start Command `npm run start:prod`, Health Check Path `/health`, ditambah variabel `NODE_VERSION=22` dan variabel yang sama seperti di Vercel di atas.
 - **Railway:** buat project dari repo ini, isi **Root Directory** dengan `nest` (perintah start dan health check sudah diatur di `nest/railway.json`), isi variabel yang sama, lalu buat domain publik di bagian **Networking**.
 
 Di kedua platform ini `PORT` diisi otomatis, jadi tidak perlu ditambahkan.
@@ -418,7 +387,7 @@ Ini hal-hal yang akan saya kerjakan berikutnya:
 - **Login yang lebih aman.** Token disimpan di cookie `httpOnly` yang dibuat langsung oleh API, ditambah refresh token supaya pilot tidak perlu login ulang tiap jam. Lalu pembatasan percobaan login (*rate limit*) dengan `@nestjs/throttler`, dan tabel pengguna sungguhan dengan password yang di-hash.
 - **Database sungguhan**, misalnya PostgreSQL dengan migrasi. Karena data sudah lewat repository, yang perlu diganti cuma lapisan itu.
 - **Tipe data yang dipakai bersama.** Sekarang `nuxt/types/api.ts` masih saya salin manual dari API. Dengan paket bersama atau tipe yang dibuat otomatis dari OpenAPI, frontend dan backend selalu sinkron.
-- **Tes browser dan CI.** Tes otomatis di browser pakai Playwright untuk login, dashboard, dan kalender. Unit test frontend pakai Vitest untuk fungsi-fungsi bantu (kalender, warna, hitungan grafik). Tes API memang sudah jalan otomatis sebelum deploy, tapi idealnya lint, typecheck web, dan semua tes juga dijalankan di setiap pull request.
+- **Tes browser dan CI.** Tes otomatis di browser pakai Playwright untuk login, dashboard, dan kalender. Unit test frontend pakai Vitest untuk fungsi-fungsi bantu (kalender, warna, hitungan grafik). Lalu GitHub Actions yang menjalankan lint, typecheck, dan semua tes di setiap pull request.
 - **Upgrade ke Node 22 dan Nuxt terbaru**, supaya peringatan `npm audit` hilang dan versi tidak perlu dikunci lagi.
 - **Bisa dipakai tanpa internet**, untuk pilot yang sering di daerah terpencil. Aplikasinya dijadikan PWA yang menyimpan jadwal, batas jam, dan dokumen terakhir, dan isian logbook diantrikan lalu dikirim otomatis begitu koneksi kembali.
 - **Halaman Logbook dan detail hari yang sebenarnya**, setelah API punya data per penerbangan. Proyeksi jam yang sudah dijadwalkan juga bisa jadi pilihan tambahan di grafik.
